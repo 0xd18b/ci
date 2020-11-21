@@ -1,14 +1,14 @@
 // @ts-check
-import 'regenerator-runtime/runtime';
 import JSON5 from 'json5';
+import 'regenerator-runtime/runtime';
 import dappConstants from '../lib/constants.js';
-import { connect } from './connect.js';
-import { walletUpdatePurses, flipSelectedBrands } from './wallet.js';
 import { explode } from '../lib/implode';
+import { connect } from './connect.js';
+import { flipSelectedBrands, walletUpdatePurses } from './wallet.js';
 
-const { 
-  INVITE_BRAND_BOARD_ID, 
-  INSTANCE_HANDLE_BOARD_ID, 
+const {
+  INVITE_BRAND_BOARD_ID,
+  INSTANCE_HANDLE_BOARD_ID,
   INSTALLATION_HANDLE_BOARD_ID,
   issuerBoardIds: {
     Fee: FEE_ISSUER_BOARD_ID,
@@ -32,7 +32,7 @@ export default async function main() {
   });
 
   let zoeInvitationDepositFacetId;
-  
+
   const $oracleInstanceId = /** @type {HTMLInputElement} */ (document.getElementById('oracleInstanceId'));
   const $oracleQuery = /** @type {HTMLInputElement} */ (document.getElementById('oracleQuery'));
   const $inputAmount = /** @type {HTMLInputElement} */ (document.getElementById('inputAmount'));
@@ -42,8 +42,8 @@ export default async function main() {
   if (INSTANCE_HANDLE_BOARD_ID) {
     const boardId = `board:${INSTANCE_HANDLE_BOARD_ID}`;
     $oracleInstanceId.value = boardId;
-  
-      // Make the oracle visible.
+
+    // Make the oracle visible.
     document.getElementById('myOracleInstanceId').innerText = boardId;
     for (const el of document.getElementsByClassName('visibleOnlyToOracleService')) {
       const hel = /** @type {HTMLElement} */ (el);
@@ -52,7 +52,7 @@ export default async function main() {
   }
 
   const oracleSend = await connect(
-    '/api/oracle', 
+    '/api/oracle',
     obj => {
       switch (obj.type) {
         case 'oracleServer/pendingQueries': {
@@ -189,7 +189,7 @@ Fee <input id="fee-${queryId}" value="${Number(fee)}" type="number"/>
   };
 
   const $queryOracle = /** @type {HTMLInputElement} */ (document.getElementById('queryOracle'));
-  
+
   function linesToHTML(lines) {
     return lines
       .split('\n')
@@ -232,7 +232,7 @@ Fee <input id="fee-${queryId}" value="${Number(fee)}" type="number"/>
       $reply.replaceWith($code);
     }
   };
-  
+
   // All the "suggest" messages below are backward-compatible:
   // the new wallet will confirm them with the user, but the old
   // wallet will just ignore the messages and allow access immediately.
@@ -260,7 +260,7 @@ Fee <input id="fee-${queryId}" value="${Number(fee)}" type="number"/>
     '?suggestedDappPetname=Oracle',
   );
 
-  walletSend({ type: 'walletGetPurses'});
+  walletSend({ type: 'walletGetPurses' });
   walletSend({ type: 'walletGetDepositFacetId', brandBoardId: INVITE_BRAND_BOARD_ID });
   if (INSTALLATION_HANDLE_BOARD_ID) {
     walletSend({
@@ -392,7 +392,7 @@ Fee <input id="fee-${queryId}" value="${Number(fee)}" type="number"/>
       }
       $oracleReplies.prepend(el);
     });
-    
+
     return apiSend;
   });
 }

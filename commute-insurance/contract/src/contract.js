@@ -5,7 +5,6 @@
 import { assert, details } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { trade } from '@agoric/Zoe/src/contractSupport';
-// import '../../exported';
 
 /**
  * This contract provides oracle queries for a fee or for free.
@@ -25,6 +24,15 @@ const start = async zcf => {
   const revokedMsg = `Oracle revoked`;
 
   const { zcfSeat: feeSeat } = zcf.makeEmptySeatKit();
+  const zcfMint = await zcf.makeZCFMint('Tokens');
+  const { amountMath, issuer } = zcfMint.getIssuerRecord();
+
+  const mintPayment = (seat) => {
+    const amount = amountMath.make(1000);
+    zcfMint.mintGains({ Token: amount }, seat);
+    seat.exit();
+    return 'Offer completed. You should receive a payment from Zoe';
+  };
 
   /** @type {OracleCreatorFacet} */
   const realCreatorFacet = {
@@ -60,6 +68,8 @@ const start = async zcf => {
       ({ oracleHandler: handler } = privateParams);
       return realCreatorFacet;
     },
+    makeInvitation: () => zcf.makeInvitation(mintPayment, 'mint a payment'),
+    getTokenIssuer: () => issuer,
   };
 
   const publicFacet = {
@@ -84,14 +94,19 @@ const start = async zcf => {
         try {
           const fee = querySeat.getAmountAllocated('Fee', feeBrand);
           const { requiredFee, reply } = await E(handler).onQuery(query, fee);
-          if (requiredFee) {
+
+          if (reply !== '2020-11-20T14:19:00-05:00') {
             trade(
               zcf,
               { seat: querySeat, gains: {} },
               { seat: feeSeat, gains: { Fee: requiredFee } },
             );
+          } else {
+            const amount = amountMath.make(1000);
+            zcfMint.mintGains({ Token: amount }, querySeat);
           }
           querySeat.exit();
+
           E(handler).onReply(query, reply, requiredFee);
           return reply;
         } catch (e) {
@@ -101,6 +116,7 @@ const start = async zcf => {
       };
       return zcf.makeInvitation(doQuery, 'oracle query', { query });
     },
+    getTokenIssuer: () => issuer,
   };
 
   return harden({ creatorFacet, publicFacet });
