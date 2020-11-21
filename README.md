@@ -33,3 +33,11 @@ To open wallet in browser:
 ```
 agoric open
 ```
+
+
+## TODO:
+
+- copy oracle.js into contract.js and import { trade } from zoe
+- extremely simple vue UI. what's the API call look like?
+- model from demo site
+-
