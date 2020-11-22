@@ -1,6 +1,8 @@
 # Commute Insurance
 
-A basic insurance contract that pays out the covered amount each time your morning commuter train is late by more than 30 minutes.
+A POC for a basic insurance contract that mints tokens if the queried train time is not equal to the expected train time.
+
+The idea is that if you could do logic like the above you could build some interesting risk intruments like insurance contracts against your commute time. Or commuter tickets that decay in price the later the train is.
 
 ### 10,000 foot view
 MBTA API -> Chainlink Oracle -> Agoric Contract

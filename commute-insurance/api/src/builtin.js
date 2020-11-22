@@ -1,11 +1,11 @@
 // @ts-check
 /* global BigInt */
 
-import { E } from '@agoric/eventual-send';
 import { assert, details } from '@agoric/assert';
 import { makeLocalAmountMath } from '@agoric/ertp';
-
+import { E } from '@agoric/eventual-send';
 import './types';
+
 
 const CHAINLINK_SIM_JOB = 'b0b5cafec0ffeeee';
 
@@ -320,10 +320,10 @@ async function makeBuiltinOracle({
   /** @type {OracleHandler} */
   const oracleHandler = {
     async onQuery(query, fee) {
-      assert(
-        !requiredFee || feeAmountMath.isGTE(fee, requiredFee),
-        details`Minimum fee of ${requiredFee} has not been supplied`,
-      );
+      // assert(
+      //   !requiredFee || feeAmountMath.isGTE(fee, requiredFee),
+      //   details`Minimum fee of ${requiredFee} has not been supplied`,
+      // );
 
       // Decide how to handle the query.
       let replyP;

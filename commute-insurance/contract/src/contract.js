@@ -1,7 +1,4 @@
 // @ts-check
-// export { start } from '@agoric/zoe/src/contracts/oracle';
-
-// @ts-check
 import { assert, details } from '@agoric/assert';
 import { E } from '@agoric/eventual-send';
 import { trade } from '@agoric/Zoe/src/contractSupport';
@@ -24,17 +21,8 @@ const start = async zcf => {
   const revokedMsg = `Oracle revoked`;
 
   const { zcfSeat: feeSeat } = zcf.makeEmptySeatKit();
-  const zcfMint = await zcf.makeZCFMint('Tokens');
-  const { amountMath, issuer } = zcfMint.getIssuerRecord();
 
-  const mintPayment = (seat) => {
-    const amount = amountMath.make(1000);
-    zcfMint.mintGains({ Token: amount }, seat);
-    seat.exit();
-    return 'Offer completed. You should receive a payment from Zoe';
-  };
-
-  /** @type {OracleCreatorFacet} */
+  // /** @type {OracleCreatorFacet} */
   const realCreatorFacet = {
     makeWithdrawInvitation(total = false) {
       return zcf.makeInvitation(seat => {
@@ -68,8 +56,18 @@ const start = async zcf => {
       ({ oracleHandler: handler } = privateParams);
       return realCreatorFacet;
     },
-    makeInvitation: () => zcf.makeInvitation(mintPayment, 'mint a payment'),
-    getTokenIssuer: () => issuer,
+    async makePoolContributionInvitation(amount) {
+      const doContribution = async seat => {
+        revoked = true;
+        trade(
+          zcf,
+          { seat, gains: feeSeat.getCurrentAllocation() },
+          { seat: feeSeat, gains: {} },
+        );
+        zcf.shutdown(revokedMsg);
+      };
+      return zcf.makeInvitation(doContribution, 'oracle query', amount);
+    },
   };
 
   const publicFacet = {
@@ -95,15 +93,20 @@ const start = async zcf => {
           const fee = querySeat.getAmountAllocated('Fee', feeBrand);
           const { requiredFee, reply } = await E(handler).onQuery(query, fee);
 
-          if (reply !== '2020-11-20T14:19:00-05:00') {
+          if (reply !== '2020-11-22T14:06:00-05:00') {
             trade(
               zcf,
               { seat: querySeat, gains: {} },
               { seat: feeSeat, gains: { Fee: requiredFee } },
             );
           } else {
-            const amount = amountMath.make(1000);
-            zcfMint.mintGains({ Token: amount }, querySeat);
+            trade(
+              zcf,
+              { seat: feeSeat, gains: {} },
+              {
+                seat: querySeat, gains: feeMath.make(feeSeat.getAmountAllocated('Fee', feeBrand)).value
+              }
+            );
           }
           querySeat.exit();
 
@@ -116,7 +119,6 @@ const start = async zcf => {
       };
       return zcf.makeInvitation(doQuery, 'oracle query', { query });
     },
-    getTokenIssuer: () => issuer,
   };
 
   return harden({ creatorFacet, publicFacet });

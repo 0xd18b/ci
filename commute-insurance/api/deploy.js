@@ -1,13 +1,14 @@
 // @ts-check
 // Agoric Dapp api deployment script
 
-import fs from 'fs';
+import { makeLocalAmountMath } from '@agoric/ertp';
 import { E } from '@agoric/eventual-send';
 import harden from '@agoric/harden';
 import '@agoric/zoe/exported';
 import '@agoric/zoe/src/contracts/exported';
-
+import fs from 'fs';
 import installationConstants from '../ui/public/conf/installationConstants';
+
 
 // deploy.js runs in an ephemeral Node.js outside of swingset. The
 // spawner runs within ag-solo, so is persistent.  Once the deploy.js
@@ -177,7 +178,6 @@ export default async function deployApi(
       oracleDescription: INSTALL_ORACLE || 'Builtin Oracle',
     });
 
-    /** @type {OracleCreatorFacet} */
     let creatorFacet;
     if (INSTALL_ORACLE) {
       // This clause is to install an external oracle (serviced by, say, a
@@ -201,11 +201,18 @@ export default async function deployApi(
     } else {
       // Builtin oracle.
       console.log('Creating builtin oracle');
+      const feeMath = await makeLocalAmountMath(feeIssuer);
+      const requiredFee = feeMath.make(918918);
       const { oracleHandler } = await E(oracleCreator).makeBuiltinOracle({
         httpClient,
+        requiredFee
       });
       creatorFacet = await E(initializationFacet).initialize({ oracleHandler });
     }
+
+    // const contributionInvitation = E(creatorFacet).makePoolContributionInvitation(1000000);
+    // const contributionSeat = E(zoe).offer(contributionInvitation);
+    // const payout = await E(contributionSeat).getPayouts();
 
     console.log('- SUCCESS! contract instance is running on Zoe');
 
